@@ -135,6 +135,8 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
         // if results
         if ($results->num_rows > 0){
             return $this->getEntries($results);
+        } else{
+            return false;
         }
 
     }
