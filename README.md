@@ -1,7 +1,9 @@
 # Markup Activity Log
 
 ## Page level activity log for ProcessWire CMS
-Markup Activity Log is a set of ProcessWire modules that keeps a log of changes made to all core fields for an individual page. 
+Markup Activity Log is a set of ProcessWire modules that keeps a log of changes made to all core fields for an individual page.
+
+See the [Forum Post](https://processwire.com/talk/topic/9838-module-activity-log/) for details.
 
 ## Installation
 
