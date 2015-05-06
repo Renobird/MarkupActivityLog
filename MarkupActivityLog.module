@@ -125,6 +125,8 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
 
         if ($limit > 0 && is_int($limit)){
             $limit = "LIMIT $limit";
+        } else {
+            $limit = "";
         }
 
         // query
