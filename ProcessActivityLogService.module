@@ -1,0 +1,202 @@
+<?php
+
+class ProcessActivityLogService extends Process {
+	
+	const adminPageName = 'activity-log-service';
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => __('Markup Activity Log (Service Module)'),
+			'summary' => __('Service module for making Ajax calls from MarkupActivityLog module'),
+			'version' => '1.0.0',
+			'author'    => 'Tom Reno (Renobird)',
+			'href' => '',
+			'requires' => 'MarkupActivityLog',
+			'permission' => 'activity-log'
+		);
+	}
+
+	static public function errorMessage() {
+        echo __("No entry found.");
+    }
+
+	public function init() {
+		$this->modules->get('JqueryWireTabs');
+		parent::init();
+	}
+
+	private function changesCKEditor($entry, $field, $editedPage) {
+
+		$markup = $this->modules->get('InputfieldMarkup');
+		$markup->markupText .= "<ul class='WireTabs nav change-triggers'>";
+		$markup->markupText .= "<li><a id='new' class='on'>" . __('New') . "</a></li>";
+		$markup->markupText .= "<li><a id='old'>" . __('Old') . "</a></li>";
+		$markup->markupText .= "</ul>";
+
+		$inputfield = $field->getInputfield($editedPage);
+		$inputfield->class = $field->inputfieldClass;
+		$inputfield->description = "";
+		$inputfield->notes = "";
+		$inputfield->attr("value", $entry->change->new);
+		$markup->markupText .= $inputfield->render();
+
+		// These are hidden by css, just there so JS can grab their content and swap out the contents of the editor.
+		$markup->markupText .= "<div id='new' class='textarea-change'>{$entry->change->new}</div>";
+		$markup->markupText .= "<div id='old' class='textarea-change'>{$entry->change->old}</div>";
+
+		return $markup->render();
+
+	}
+
+	private function changesTabs($entry, $field, $editedPage) {
+
+		$tabs = new InputfieldForm();
+        $tabs->attr('name+id', 'MarkupActivityLog-tabs');
+
+		$tab = new InputfieldWrapper();
+		$tab->attr('title', $this->_('New'));
+		$tab->attr('class', "change_tab");
+		$inputfield = $field->getInputfield($editedPage);
+		$inputfield->description = "";
+		$inputfield->notes = "";
+		$inputfield->attr("value", $entry->change->new);
+		$tab->append($inputfield);
+		$tabs->append($tab);
+
+		$tab = new InputfieldWrapper();
+		$tab->attr('title', $this->_('Old'));
+		$tab->attr('class', "change_tab");
+		$inputfield = $field->getInputfield($editedPage);
+		$inputfield->description = "";
+		$inputfield->notes = "";
+		$inputfield->name = "old";
+		$inputfield->attr("value", $entry->change->old);
+		$tab->append($inputfield);
+		$tabs->append($tab);
+
+		$out = $tabs->render();
+			
+		if ($field->inputfieldClass == "InputfieldTinyMCE"){ // add script to initialize tinyMCE in modal, set to readonly.
+			$markup = $this->modules->get('InputfieldMarkup');
+			$markup->markupText = '<script>';
+			$markup->markupText .= 'tinyMCE.init({';
+			$markup->markupText .= 'mode:"textareas",';
+			$markup->markupText .= 'readonly: 1,';
+			foreach ($field->data as $k => $v) {
+				$markup->markupText .= $k . ': "' . preg_replace( "/\r|\n/", "", $v ) . '",'; // clean up new lines to prevent unexpected EOF error.
+			}
+			$markup->markupText .= "})";
+			$markup->markupText .= "</script>";
+
+			$out .= $markup->render();
+		}
+		
+		return $out;
+
+	}
+
+	public function execute() {
+
+		list($pageID, $entryID, $fieldID) = explode('.', $this->input->get->ids);
+
+    	// verify that we only have numeric characters to prevent injection.
+    	if (!ctype_digit($pageID . $entryID . $fieldID)) $this->errorMessage();
+
+    	$editedPage = $this->pages->get("id=$pageID");
+
+        $result = $this->db->query("SELECT * FROM MarkupActivityLog WHERE `id` = $entryID LIMIT 1");
+
+        if ($result->num_rows > 0) {
+
+        	$row = $result->fetch_assoc();
+
+        	// check that the pageID in the request is the same as the current edited page.
+        	if ($pageID != $row['page_id']) $this->errorMessage();
+
+        	// decode the changes field
+        	$changes = json_decode($row['changes']);
+   
+            // look for a matching field, and echo diff.
+            foreach($changes as $entry){
+	            
+	            if ($entry->field != $fieldID) continue; // split if this is not the requested field.
+	            
+	            $field = wire()->fields->get($entry->field);
+                $fieldLabel = $field->get('label|name');
+	            $log = $this->modules->get('MarkupActivityLog');
+	            $date = date($log->getDateFormat(), strtotime($row['date']));
+	            $time = date($log->getTimeFormat(), strtotime($row['date']));
+	            $u = wire('users')->get("id=".$row['user']);
+	      		$userFields = $log->getUserFields($u);
+
+	            $markup = "<b>" . __("Changes to field: $fieldLabel") . "</b>";
+            	$markup .= "<ul class='change-details'>
+            		 	<li><i class='fa fa-calendar'></i> $date</li>
+            		 	<li><i class='fa fa-clock-o'></i> $time</li>
+            		 	<li><i class='fa fa-user'></i> $userFields</li>
+            		</ul>
+            		<div class='change-wrap'>"; // needed so AdminDefault and AdminReno have same spacing.
+
+            	// if field isn't set, we aren't dealing with a core textarea field type.
+            	// using switch here in the event I end up supporting other field types.
+            	if (isset($field)){
+            		switch ($field->inputfieldClass) {
+	            		case 'InputfieldCKEditor':
+	            			$markup .= $this->changesCKEditor($entry, $field, $editedPage);
+	            			break;
+	            		
+	            		default:
+	            			$markup .= $this->changesTabs($entry, $field, $editedPage);
+	            			break;
+            		}
+            	}
+
+            	$markup .= "</div>"; // end .change-wrap 
+
+				echo "<div id='content' class='$this->className'>$markup</div>";
+	        }
+        }
+
+        exit; // so that no additional output occurs.
+	}
+
+	/**
+	 * Install/Uninstall lifted from FormBuilder module. 
+	 *
+	 */
+
+	protected function getInstalledPage($install = true) {
+
+		$admin = $this->pages->get($this->config->adminRootPageID); 
+		$page = $admin->child("name=" . self::adminPageName .", include=hidden"); 
+
+		if ($install){
+			if(!$page->id) { 	
+				$page = new Page();
+				$page->parent = $admin; 
+				$page->template = $this->templates->get('admin');
+				$page->name = self::adminPageName; 
+				$page->title = 'Activity Log Service'; // Title of created page
+				$page->process = $this;
+				$page->status = Page::statusHidden;
+				$page->sort = $admin->numChildren;
+				$page->save();
+			}
+		}
+		
+		return $page; 	
+	}
+
+	public function ___install() {
+		$page = $this->getInstalledPage();
+		$this->message(sprintf($this->_('Service Page installed to %s'), $page->path)); 
+	}
+
+	public function ___uninstall() {
+		$page = $this->getInstalledPage(false);	
+		if($page->id) { 
+			$this->message(sprintf($this->_('Removed %s'), $page->path));
+			$this->pages->delete($page); 
+		}
+	}
+}

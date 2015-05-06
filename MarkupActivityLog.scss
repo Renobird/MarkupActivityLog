@@ -1,0 +1,94 @@
+dl.MarkupActivityLog{
+	width: 100%;
+	
+	dt{
+		clear: both;
+    	float: left;
+    	margin-right: 4em;
+		font-weight: normal;
+
+		&:not(.date-stamp){
+			color: #8d939e;
+			padding: 1em 0;
+		}
+
+		&.date-stamp{
+			padding: 0;
+			&:not(i){font-weight: bold;}
+			&:not(:first-child){
+				margin-top: 2em;
+			}
+		}
+	}
+	
+	dd {
+		margin: 0;
+		border-bottom-style: dotted;
+		&:not(.date-stamp){
+			padding: 1em 0;
+		}
+
+		&:after {
+      		content: '';
+      		display: table;
+      		clear: both;
+    	}
+	}
+
+	
+	ul{ 
+		overflow: hidden; // required to keep dd from wrapping under dt
+		li{ margin: 0 !important; }
+	}
+}
+
+.mfp-bg {
+	opacity: 0.5;
+}
+
+.mfp-content {
+	position: relative;
+	width: auto;
+	max-width: 900px;
+	margin: 20px auto;
+
+	ul.change-details{
+		margin: .6em 0 1.2em 0;
+		li {
+			display: inline-block;
+			margin-right: 2em;
+		}
+	}
+
+	.textarea-change{
+		display: none;
+	}
+
+	#content{
+		background: #fff;
+		padding: 2em;
+	}
+
+	.change-wrap{
+		margin: 4em 0 0 0;
+	}
+
+	.change-triggers a:hover{
+		cursor: pointer;
+	}
+}
+
+.mfp-preloader {
+	color: #000;
+	z-index: 9999;
+}
+
+#MarkupActivityLog-tabs{
+	.InputfieldHeader{
+		display: none;
+	}
+	.InputfieldContent{
+		padding: 0;
+		border: none;
+	}
+}
