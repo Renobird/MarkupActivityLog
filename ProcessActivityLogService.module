@@ -8,7 +8,7 @@ class ProcessActivityLogService extends Process {
 		return array(
 			'title' => __('Markup Activity Log (Service Module)'),
 			'summary' => __('Service module for making Ajax calls from MarkupActivityLog module'),
-			'version' => '1.0.0',
+			'version' => '1.0.1',
 			'author'    => 'Tom Reno (Renobird)',
 			'href' => '',
 			'requires' => 'MarkupActivityLog',
