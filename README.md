@@ -1,9 +1,7 @@
 # Markup Activity Log
 
 ## Page level activity log for ProcessWire CMS
------------------------------
 Markup Activity Log is a set of ProcessWire modules that keeps a log of changes made to all core fields for an individual page. 
-- - - 
 
 ## Installation
 
@@ -23,7 +21,7 @@ If you are unable to install using that method, you can also just install the ol
 
 In a template file where you wish to display the activity log.
 
-``` html
+``` php
 $activity = $modules->get("MarkupActivityLog");
 $page = $pages->get("id=12345"); // this page's template must be specified in the module config list or else it throws an error.
 echo $activity->render($page, 10); // the 2nd argument is the number is an optional results limit.
