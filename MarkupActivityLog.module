@@ -390,9 +390,11 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
 
         switch($field->className) {
             case 'PageArray':
+            case 'SelectableOptionArray':
                 return $this->pageFieldTitle($field, true);
 
             case 'Page':
+            case 'SelectableOption':
                 return $this->formatPageTitle($field);
                 
             case 'User':
