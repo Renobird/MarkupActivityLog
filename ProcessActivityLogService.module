@@ -12,7 +12,6 @@ class ProcessActivityLogService extends Process {
 			'author'    => 'Tom Reno (Renobird)',
 			'href' => '',
 			'requires' => 'MarkupActivityLog',
-			'permission' => 'activity-log'
 		);
 	}
 
