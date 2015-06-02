@@ -1,12 +1,11 @@
 <?php
 
-
 class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
 
     public static function getModuleInfo() {
         return array(
             'title'     => __('Activity Log'),
-            'version'   => '1.0.0',
+            'version'   => '1.0.1',
             'author'    => 'Tom Reno (Renobird)',
             'summary'   => __('Adds an Activity Log tab to pages. Configurable to specific templates.'),
             'href' => '',
@@ -14,7 +13,6 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
             'autoload'  => true,
             'installs'  => 'ProcessActivityLogService',
             //'requires'  => 'ProcessActivityLogService', // This does work properly for uninstall. Perhaps fixed on dev.
-            'permission' => 'activity-log'
             );
     }
     
@@ -62,6 +60,12 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
         if($this->page->process != 'ProcessPageEdit') return;
         $p = wire('pages')->get($this->config->input->get->id);
         if(in_array($p->template->name, $this->templateList)) {
+            $this->pages->addHookAfter('saveReady', $this, 'hookUpdateLog');
+        }
+    }
+
+    public function logChanges($page) {
+        if(in_array($page->template->name, $this->templateList)) {
             $this->pages->addHookAfter('saveReady', $this, 'hookUpdateLog');
         }
     }
@@ -126,7 +130,7 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
         if ($limit > 0 && is_int($limit)){
             $limit = "LIMIT $limit";
         } else {
-            $limit = "";
+            $limit = '';
         }
 
         // query
@@ -145,9 +149,14 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
         return $this->db->query("SELECT * FROM {$this->className} WHERE `page_id` = $page->id  ORDER BY `date` DESC $limit");
     }
 
+
     public function hookUpdateLog(HookEvent $event) {
-        
         $page = $event->arguments[0];
+        $this->logFieldChanges($page);
+    }
+    
+
+    public function logFieldChanges($page) {
         $changes = $page->getChanges();
         if (empty($changes)) return;
         $this->prepEntry($page, $changes);
@@ -354,6 +363,11 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
             } else {
                 $fieldID = wire()->fields->get($change)->id;
             }
+
+            // when logging changes from the api, there could be fields that do not exists as part of the changes
+            // this happens when you add fields to a inputfieldWrapper that are not actual fields in ProcessWire.
+            // TODO: update so that these fields can be tracked as well.
+            if ($fieldID == null) continue;
 
             // we want to show the old/new path when the parent page changes
             if ($change == 'parent'){
