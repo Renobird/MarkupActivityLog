@@ -29,5 +29,14 @@ $page = $pages->get("id=12345"); // this page's template must be specified in th
 echo $activity->render($page, 10); // the 2nd argument is the number is an optional results limit.
 ```
 
+To log changes made to a page via the API.
+
+``` php
+$activity = $modules->get("MarkupActivityLog");
+$activity->logChanges($page);
+
+$page->save();
+```
+
 Note: The first version of the module generates markup when used on the API side. (see: MarkupActivityLog.inc);
 I plan to add the ability to specify a markup file for the next release.
