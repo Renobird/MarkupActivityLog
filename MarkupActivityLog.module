@@ -4,7 +4,7 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
 
     public static function getModuleInfo() {
         return array(
-            'title'     => __('Activity Log'),
+                'title'     => __('Activity Log'),
             'version'   => '1.0.1',
             'author'    => 'Tom Reno (Renobird)',
             'summary'   => __('Adds an Activity Log tab to pages. Configurable to specific templates.'),
@@ -223,10 +223,12 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
             if (array_key_exists($entry->field, $this->builtInPageFields)){
                 $type = $entry->field;
                 $fieldLabel = $this->builtInPageFields["$entry->field"];
+                $fieldLabel = wire("fields")->get($fieldLabel)->getLabel();
 
             } else {
                 $field = wire()->fields->get($entry->field);
-                $fieldLabel = $field->get('label|name');
+                $fieldLabel = $field->get('name');
+                $fieldLabel = wire("fields")->get($fieldLabel)->getLabel();
                 $type = $field->type->name;
             }
 
@@ -238,7 +240,11 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
                 case 'status':
                     $out[] = $this->formatStatusChange($fieldLabel, $type, $old, $new);
                     break;
-                
+
+                case 'FieldtypeDatetime':
+                    $out[] = array("field" => $fieldLabel, "type" => $type, "old" => strftime('%d.%m.%Y %H:%M:%S', $old), "new" => strftime('%d.%m.%Y %H:%M:%S', $new));
+                    break;
+
                 default:
                     $out[] = array("field" => $fieldLabel, "type" => $type, "old" => $old, "new" => $new);
                     break;

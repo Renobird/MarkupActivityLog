@@ -121,7 +121,9 @@ class ProcessActivityLogService extends Process {
 	            if ($entry->field != $fieldID) continue; // split if this is not the requested field.
 	            
 	            $field = wire()->fields->get($entry->field);
-                $fieldLabel = $field->get('label|name');
+                $fieldLabel = $field->get('name');
+                $fieldLabel = wire("fields")->get($fieldLabel)->getLabel();
+
 	            $log = $this->modules->get('MarkupActivityLog');
 	            $date = date($log->getDateFormat(), strtotime($row['date']));
 	            $time = date($log->getTimeFormat(), strtotime($row['date']));
