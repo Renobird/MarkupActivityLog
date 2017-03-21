@@ -103,11 +103,11 @@ class ProcessActivityLogService extends Process {
 
     	$editedPage = $this->pages->get("id=$pageID");
 
-        $result = $this->db->query("SELECT * FROM MarkupActivityLog WHERE `id` = $entryID LIMIT 1");
+        $result = $this->database->query("SELECT * FROM MarkupActivityLog WHERE `id` = $entryID LIMIT 1");
 
-        if ($result->num_rows > 0) {
+        if ($result->rowCount() > 0) {
 
-        	$row = $result->fetch_assoc();
+        	$row = $result->fetch(PDO::FETCH_ASSOC);
 
         	// check that the pageID in the request is the same as the current edited page.
         	if ($pageID != $row['page_id']) $this->errorMessage();
