@@ -103,7 +103,7 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
         $results = $this->getResults($page, $limit);
 
         // if results
-        if ($results->num_rows > 0){
+        if ($results->rowCount() > 0){
             $field->markupText = $this->getEntries($results);
         }
 
@@ -137,7 +137,7 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
         $results = $this->getResults($page, $limit);
 
         // if results
-        if ($results->num_rows > 0){
+        if ($results->rowCount() > 0){
             return $this->getEntries($results);
         } else{
             return false;
@@ -146,7 +146,7 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
     }
 
     private function getResults($page, $limit){
-        return $this->db->query("SELECT * FROM {$this->className} WHERE `page_id` = $page->id  ORDER BY `date` DESC $limit");
+        return $this->database->query("SELECT * FROM {$this->className} WHERE `page_id` = $page->id  ORDER BY `date` DESC $limit");
     }
 
 
@@ -177,7 +177,7 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
        
        $entries = array();
        $date = null;
-        while ($row = $results->fetch_assoc()) {
+        while ($row = $results->fetch(PDO::FETCH_ASSOC)) {
             $dateStamp = null;
             $rowDate = date($this->dateFormat, strtotime($row['date']));
             if ($date == null || $date != $rowDate){
@@ -424,13 +424,13 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
     private function saveEntry($page, $user, $data){
         
         $page_id = $page->id;
-        $user = $this->db->escape_string($user);
-        $data = $this->db->escape_string($data);
+        $user = $this->database->escape_string($user);
+        $data = $this->database->escape_string($data);
 
         $sql = "INSERT INTO {$this->className} 
                 SET `page_id` = '$page_id', `user` = '$user', `changes` = '$data'";
 
-        return $this->db->query($sql);
+        return $this->database->query($sql);
     }
 
     // used by the service module to get dateFormat
@@ -584,7 +584,7 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
             );
 _SQL;
         
-        $this->db->query($sql);
+        $this->database->query($sql);
 
     }
 
@@ -602,6 +602,6 @@ _SQL;
             $fields->delete($fields->get($field));
         }
 
-        $this->db->query("DROP TABLE {$this->className}");
+        $this->database->query("DROP TABLE {$this->className}");
     }
 }
