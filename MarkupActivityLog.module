@@ -57,16 +57,13 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
 
 
     public function ready() {
-        if($this->page->process != 'ProcessPageEdit') return;
-        $p = wire('pages')->get($this->config->input->get->id);
-        if(in_array($p->template->name, $this->templateList)) {
-            $this->pages->addHookAfter('saveReady', $this, 'hookUpdateLog');
-        }
+        if($this->page->process != 'ProcessPageEdit' && $this->page->process != 'ProcessPageListerPro') return;
+        $this->pages->addHookAfter('savePageOrFieldReady', $this, 'hookUpdateLog');
     }
 
     public function logChanges($page) {
         if(in_array($page->template->name, $this->templateList)) {
-            $this->pages->addHookAfter('saveReady', $this, 'hookUpdateLog');
+            $this->pages->addHookAfter('savePageOrFieldReady', $this, 'hookUpdateLog');
         }
     }
 
@@ -152,6 +149,7 @@ class MarkupActivityLog extends WireData implements Module, ConfigurableModule {
 
     public function hookUpdateLog(HookEvent $event) {
         $page = $event->arguments[0];
+        if(!in_array($page->template->name, $this->templateList)) return;
         $this->logFieldChanges($page);
     }
     
